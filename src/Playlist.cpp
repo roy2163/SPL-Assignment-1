@@ -12,7 +12,47 @@ Playlist::~Playlist() {
     #ifdef DEBUG
     std::cout << "Destroying playlist: " << playlist_name << std::endl;
     #endif
+    PlaylistNode* current;
+    while(head){
+        current = head;
+        head = head->next;
+        
+        delete current;
+    } 
 }
+
+Playlist& Playlist::operator=(const Playlist& other) {
+    PlaylistNode* current_delete = head;
+    while (current_delete) {
+        PlaylistNode* next = current_delete->next;
+        delete current_delete;
+        current_delete = next;
+    }
+
+    head = nullptr; 
+    
+    playlist_name = other.playlist_name;
+    track_count = other.track_count;
+
+    if (other.head == nullptr) {
+        return *this;
+    }
+
+    head = new PlaylistNode(*other.head); 
+    
+    PlaylistNode* current_source = other.head->next;
+    PlaylistNode* current_dest = head;              
+
+    while (current_source) {
+        current_dest->next = new PlaylistNode(*current_source);
+        
+        current_dest = current_dest->next;
+        current_source = current_source->next;
+    }
+
+    return *this;
+}
+
 
 void Playlist::add_track(AudioTrack* track) {
     if (!track) {
@@ -50,8 +90,11 @@ void Playlist::remove_track(const std::string& title) {
             head = current->next;
         }
 
+        delete current;
+
         track_count--;
         std::cout << "Removed '" << title << "' from playlist" << std::endl;
+        
 
     } else {
         std::cout << "Track '" << title << "' not found in playlist" << std::endl;
