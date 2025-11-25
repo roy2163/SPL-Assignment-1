@@ -11,7 +11,21 @@ DJControllerService::DJControllerService(size_t cache_size)
  */
 int DJControllerService::loadTrackToCache(AudioTrack& track) {
     // Your implementation here 
-    return 0; // Placeholder
+    if(cache.contains(track.get_title())){
+        cache.get(track.get_title());
+        return 1;
+    }
+    else{
+        AudioTrack* loadedTrack = track.clone().release();
+        if(loadedTrack == nullptr){
+            std::cerr << "Error: Failed to clone track (nullptr returned)." << std::endl;
+            return 0;
+        }
+        else{
+            PointerWrapper<AudioTrack> wrpLoaded = PointerWrapper<AudioTrack>(track);   
+        }
+    }  
+
 }
 
 void DJControllerService::set_cache_size(size_t new_size) {
