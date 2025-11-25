@@ -53,7 +53,24 @@ Playlist& Playlist::operator=(const Playlist& other) {
     return *this;
 }
 
+Playlist::Playlist(const Playlist& other) 
+    : head(nullptr), playlist_name(other.playlist_name), track_count(other.track_count) {
+    
+    if (other.head == nullptr) {
+        return;
+    }
 
+    head = new PlaylistNode(*other.head);
+
+    PlaylistNode* current_src = other.head->next;
+    PlaylistNode* current_dest = head;
+
+    while (current_src) {
+        current_dest->next = new PlaylistNode(*current_src);
+        current_dest = current_dest->next;
+        current_src = current_src->next;
+    }
+}
 void Playlist::add_track(AudioTrack* track) {
     if (!track) {
         std::cout << "[Error] Cannot add null track to playlist" << std::endl;

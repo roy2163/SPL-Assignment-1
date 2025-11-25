@@ -19,13 +19,37 @@ struct PlaylistNode {
     AudioTrack* track; 
     PlaylistNode* next;
 
+    // בנאי רגיל
     PlaylistNode(AudioTrack* t) : track(t), next(nullptr) {};
 
-    PlaylistNode(const PlaylistNode& other);
-
     ~PlaylistNode(){
-        delete track;
+        if (track) {
+            delete track;
+            track = nullptr;
+        }
     };
+
+    PlaylistNode(const PlaylistNode& other) : track(nullptr), next(nullptr) {
+        if (other.track) {
+            PointerWrapper<AudioTrack> wrapper = other.track->clone();
+            track = wrapper.release();
+        }
+    }
+
+    PlaylistNode& operator=(const PlaylistNode& other) {
+        if (this != &other) {
+            if (track) delete track;
+            
+            if (other.track) {
+                PointerWrapper<AudioTrack> wrapper = other.track->clone();
+                track = wrapper.release();
+            } else {
+                track = nullptr;
+            }
+            next = nullptr;
+        }
+        return *this;
+    }
 };
 
 class Playlist {
