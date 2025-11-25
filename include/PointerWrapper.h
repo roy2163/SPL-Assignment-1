@@ -90,7 +90,7 @@ public:
 
     T& operator*() const {
         if(ptr == nullptr){
-            throw std::runtime_error();
+            throw std::runtime_error("ptr is null while calling *");
         }
         return *ptr;
     };
@@ -102,7 +102,7 @@ public:
      */
     T* operator->() const {
         if(ptr == nullptr){
-            throw std::runtime_error();
+            throw std::runtime_error("ptr is null while calling ->");
         }
         return ptr;
     }
@@ -115,7 +115,7 @@ public:
      */
     T* get() const {
         if(ptr == nullptr){
-            throw std::runtime_error();
+            throw std::runtime_error("ptr is null while calling get");
         }
         return ptr;
     }
