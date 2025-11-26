@@ -1,43 +1,100 @@
 #include "MixingEngineService.h"
 #include <iostream>
 #include <memory>
-
+#include <cmath> // Required for std::abs
 
 /**
- * TODO: Implement MixingEngineService constructor
+ * Constructor
  */
 MixingEngineService::MixingEngineService()
-    : active_deck(0)
+    : active_deck(0),
+      auto_sync(false),
+      bpm_tolerance(0),
+      decks{nullptr, nullptr}
 {
-    // Your implementation here
+    std::clog << "[MixingEngineService] Initialized with 2 empty decks." << std::endl;
 }
 
 /**
- * TODO: Implement MixingEngineService destructor
+ * Destructor
  */
 MixingEngineService::~MixingEngineService() {
-    // Your implementation here
+    std::clog << "[MixingEngineService] Cleaning up decks..." << std::endl;
+    for(size_t i = 0; i < 2; i++){
+        if(decks[i] != nullptr){
+            delete decks[i];
+            decks[i] = nullptr;
+        }
+    }
 }
 
-
 /**
- * TODO: Implement loadTrackToDeck method
- * @param track: Reference to the track to be loaded
- * @return: Index of the deck where track was loaded, or -1 on failure
+ * loadTrackToDeck
  */
 int MixingEngineService::loadTrackToDeck(const AudioTrack& track) {
-    // Your implementation here
-    return -1; // Placeholder
+    // 3(a) Log header
+    std::clog << "\n=== Loading Track to Deck ===" << std::endl;
+
+    AudioTrack* trackUnwrp = track.clone().release();
+    if(trackUnwrp == nullptr){
+        std::cerr << "[ERROR] Track: \"" << track.get_title() << "\" failed to clone" << std::endl;
+        return -1;
+    }
+    PointerWrapper<AudioTrack> wrpr(trackUnwrp);
+
+
+    bool isFirstTrack = (decks[0] == nullptr && decks[1] == nullptr);
+    int target_index;
+
+    if (isFirstTrack) {
+        target_index = 0;
+    } else {
+        target_index = 1 - active_deck;
+    }
+
+    std::clog << "[Deck Switch] Target deck: " << target_index << std::endl;
+
+    if(decks[target_index] != nullptr){
+        delete decks[target_index];
+        decks[target_index] = nullptr;
+    }
+
+    wrpr->load();
+    wrpr->analyze_beatgrid();
+
+
+    if(!isFirstTrack && decks[active_deck] != nullptr && auto_sync) {
+        if (!can_mix_tracks(wrpr)) {
+            sync_bpm(wrpr);
+        }
+    }
+
+
+    std::string newTitle = wrpr->get_title();
+    decks[target_index] = wrpr.release();
+    std::clog << "[Load Complete] '" << newTitle << "' is now loaded on deck " << target_index << std::endl;
+
+    if(!isFirstTrack && decks[active_deck] != nullptr) {
+        std::clog << "[Unload] Unloading previous deck " << active_deck
+                  << " (" << decks[active_deck]->get_title() << ")" << std::endl;
+
+        delete decks[active_deck];
+        decks[active_deck] = nullptr;
+    }
+
+
+    active_deck = target_index;
+
+    std::clog << "[Active Deck] Switched to deck " << target_index << std::endl;
+
+    return target_index;
 }
 
-/**
- * @brief Display current deck status
- */
 void MixingEngineService::displayDeckStatus() const {
     std::cout << "\n=== Deck Status ===\n";
     for (size_t i = 0; i < 2; ++i) {
         if (decks[i])
-            std::cout << "Deck " << i << ": " << decks[i]->get_title() << "\n";
+            std::cout << "Deck " << i << ": " << decks[i]->get_title() << " (" << decks[i]->get_bpm() << " BPM)\n";
         else
             std::cout << "Deck " << i << ": [EMPTY]\n";
     }
@@ -45,23 +102,19 @@ void MixingEngineService::displayDeckStatus() const {
     std::cout << "===================\n";
 }
 
-/**
- * TODO: Implement can_mix_tracks method
- * 
- * Check if two tracks can be mixed based on BPM difference.
- * 
- * @param track: Track to check for mixing compatibility
- * @return: true if BPM difference <= tolerance, false otherwise
- */
 bool MixingEngineService::can_mix_tracks(const PointerWrapper<AudioTrack>& track) const {
-    // Your implementation here
-    return false; // Placeholder
+    if (decks[active_deck] == nullptr || track.get() == nullptr) {
+        return false;
+    }
+    return std::abs(decks[active_deck]->get_bpm() - track->get_bpm()) <= bpm_tolerance;
 }
 
-/**
- * TODO: Implement sync_bpm method
- * @param track: Track to synchronize with active deck
- */
 void MixingEngineService::sync_bpm(const PointerWrapper<AudioTrack>& track) const {
-    // Your implementation here
+    if (decks[active_deck] == nullptr || track.get() == nullptr) return;
+
+    int originalBpm = track->get_bpm();
+    int newBpm = (originalBpm + decks[active_deck]->get_bpm()) / 2;
+
+    track->set_bpm(newBpm);
+    std::cout << "[Sync BPM] Syncing BPM from " << originalBpm << " to " << newBpm << std::endl;
 }

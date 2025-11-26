@@ -22,7 +22,6 @@ bool LRUCache::put(PointerWrapper<AudioTrack> track) {
         return false;
     }
     
-    size_t index = findEmptySlot();
     access_counter++;
 
     std::string title = track->get_title(); 
@@ -32,6 +31,7 @@ bool LRUCache::put(PointerWrapper<AudioTrack> track) {
         return false;
     }
     bool evicted = false;
+    size_t index = findEmptySlot();
     if(index == max_size){
         evictLRU();
         evicted = true;
