@@ -15,16 +15,18 @@ int DJControllerService::loadTrackToCache(AudioTrack& track) {
         cache.get(track.get_title());
         return 1;
     }
-    else{
-        AudioTrack* loadedTrack = track.clone().release();
-        if(loadedTrack == nullptr){
-            std::cerr << "Error: Failed to clone track (nullptr returned)." << std::endl;
-            return 0;
-        }
-        else{
-            PointerWrapper<AudioTrack> wrpLoaded = PointerWrapper<AudioTrack>(track);   
-        }
-    }  
+    AudioTrack* loadedTrack = track.clone().release();
+    if(loadedTrack == nullptr){
+        std::cerr << "[Error]: Failed to clone track (nullptr returned)." << std::endl;
+        return 0;
+    }
+    PointerWrapper<AudioTrack> wrpLoaded(loadedTrack);
+    bool evicted = cache.put(std::move(wrpLoaded));   
+    if (evicted) {
+        return -1; 
+    } else {
+        return 0; 
+    }
 
 }
 
@@ -43,5 +45,6 @@ void DJControllerService::displayCacheStatus() const {
  */
 AudioTrack* DJControllerService::getTrackFromCache(const std::string& track_title) {
     // Your implementation here
-    return nullptr; // Placeholder
+    AudioTrack* track = cache.get(track_title);
+    return track;
 }
