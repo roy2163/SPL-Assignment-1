@@ -40,7 +40,13 @@
     "files.associations": {
         "*.h": "cpp",
         "*.cpp": "cpp",
-        "*.txt": "plaintext"
+        "*.txt": "plaintext",
+        "tuple": "cpp",
+        "stdexcept": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "chrono": "cpp",
+        "variant": "cpp"
     },
     
     // Editor settings for academic integrity
