@@ -10,7 +10,7 @@ MixingEngineService::MixingEngineService():
     decks{nullptr, nullptr},
     active_deck(1),
     auto_sync(false),
-    bpm_tolerance(0),
+    bpm_tolerance(0)
 {
     std::clog << "[MixingEngineService] Initialized with 2 empty decks." << std::endl;
 }
