@@ -73,7 +73,30 @@ bool DJSession::load_playlist(const std::string& playlist_name)  {
  */
 int DJSession::load_track_to_controller(const std::string& track_name) {
     // Your implementation here
-    return 0; // Placeholder
+    AudioTrack* track = library_service.findTrack(track_name);
+    if(track == nullptr){
+        std::cerr << "[ERROR] Track: \"" << track_name << "\" not found in library" << std::endl;
+        stats.errors++;
+        return 0;
+    }
+
+    std::clog << "[System] Loading track '" << track_name << "' to controller..." << std::endl;
+
+    int retval = controller_service.loadTrackToCache(*track);
+
+    if (retval == 1){
+        stats.cache_hits++;
+    }
+    else if(retval == 0){
+        stats.cache_misses++;
+    }
+    else{
+        stats.cache_misses++;
+        stats.cache_evictions++;
+    }
+
+    return retval;
+
 }
 
 /**
@@ -85,7 +108,31 @@ int DJSession::load_track_to_controller(const std::string& track_name) {
 bool DJSession::load_track_to_mixer_deck(const std::string& track_title) {
     std::cout << "[System] Delegating track transfer to MixingEngineService for: " << track_title << std::endl;
     // your implementation here
-    return false; // Placeholder
+    AudioTrack* track = controller_service.getTrackFromCache(track_title);
+
+    if(track == nullptr){
+        std::cerr << "[ERROR] Track: \"" << track_title << "\" not found in cache" << std::endl;
+        stats.errors++;
+        return false;
+    }
+
+    int retval = mixing_service.loadTrackToDeck(*track);
+
+    if(retval == 0){
+        stats.deck_loads_a++;
+        stats.transitions++;
+    }
+    else if (retval == 1){
+        stats.deck_loads_b++;
+        stats.transitions++;
+    }
+    else{
+        std::clog << "[ERROR] error trying to load track: \"" << track_title << "\" to Deck" << std::endl;
+        stats.errors++;
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -118,6 +165,54 @@ void DJSession::simulate_dj_performance() {
 
     std::cout << "TODO: Implement the DJ performance simulation workflow here." << std::endl;
     // Your implementation here
+
+    
+    std::vector<std::string> playlistNames;
+    std::string playlist_from_user;
+
+    if(this->play_all){
+        for (const auto& pair : session_config.playlists){
+            playlistNames.push_back(pair.first);
+        }
+        std::sort(playlistNames.begin(), playlistNames.end()); 
+   }
+    else{
+        playlist_from_user = display_playlist_menu_from_config();
+        if(!playlist_from_user.empty()){
+            playlistNames.push_back(playlist_from_user);
+        }
+    }
+
+    while(!playlistNames.empty()){
+        for(const auto& playlist_name : playlistNames){
+            if(!load_playlist(playlist_name)){
+                std::cerr << "[ERROR] playlist: \"" << playlist_name << "\" did not load" << std::endl;
+                continue;
+            }
+
+            for(const auto& track_title : track_titles){
+                std::clog << "\n-- Processing: " << track_title << " --" << std::endl;
+                stats.tracks_processed++;
+                load_track_to_controller(track_title);
+                load_track_to_mixer_deck(track_title);
+            }
+            print_session_summary();
+            stats = SessionStats{};
+        }
+
+        playlistNames.clear();
+
+        if(!this->play_all){
+            playlist_from_user = display_playlist_menu_from_config();
+            if(!playlist_from_user.empty()){
+                playlistNames.push_back(playlist_from_user);
+            }
+        }
+
+    }
+
+    std::clog << "Session cancelled by user or all playlists played." << std::endl;
+
 }
 
 
