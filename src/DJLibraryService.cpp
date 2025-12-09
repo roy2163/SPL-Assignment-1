@@ -73,7 +73,7 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
     std::clog << "[INFO] Loading playlist: "  << playlist_name << std::endl;
     playlist = Playlist(playlist_name);
     for(const auto& i : track_indices){
-        if(i >= 1 && i <= library.size()){
+        if(i >= 1 && i <= static_cast<int>(library.size())){
             AudioTrack* ptr = library[i - 1]->clone().release();
             if(ptr == nullptr){
                 std::cerr << "[ERROR] Failed to clone track at index: " << i << std::endl;

@@ -16,7 +16,6 @@ Playlist::~Playlist() {
     while(head){
         current = head;
         head = head->next;
-        
         delete current;
     } 
 }
