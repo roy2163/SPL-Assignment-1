@@ -19,15 +19,13 @@ void DJLibraryService::buildLibrary(const std::vector<SessionConfig::TrackInfo>&
             AudioTrack* T = new MP3Track(track.title, track.artists, 
                    track.duration_seconds, track.bpm, track.extra_param1, (track.extra_param2 > 0));
             library.push_back(T);
-            std::clog << "MP3: MP3Track created: " << track.extra_param1 << " kbps" << std::endl;
         } else if(track.type == "WAV"){
             AudioTrack* T = new WAVTrack(track.title, track.artists, 
                    track.duration_seconds, track.bpm, track.extra_param1, track.extra_param2);
             library.push_back(T);
-            std::clog << "WAV: WAVTrack created: " << track.extra_param1 << "Hz/" << track.extra_param2 << "bit" << std::endl;
         }
     }
-    std::clog <<  "[INFO] Track library built: " << library.size() << " tracks loaded" << std::endl;
+    std::cout <<  "[INFO] Track library built: " << library.size() << " tracks loaded" << std::endl;
 }
 
 /**
@@ -70,9 +68,10 @@ AudioTrack* DJLibraryService::findTrack(const std::string& track_title) {
 
 void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name, 
                                                const std::vector<int>& track_indices) {
-    std::clog << "[INFO] Loading playlist: "  << playlist_name << std::endl;
+    std::cout << "[INFO] Loading playlist: "  << playlist_name << std::endl;
     playlist = Playlist(playlist_name);
-    for(const auto& i : track_indices){
+    for(auto it = track_indices.rbegin(); it != track_indices.rend(); ++it){
+        int i = *it;
         if(i >= 1 && i <= static_cast<int>(library.size())){
             AudioTrack* ptr = library[i - 1]->clone().release();
             if(ptr == nullptr){
@@ -82,13 +81,13 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
             ptr->load();
             ptr->analyze_beatgrid();
             playlist.add_track(ptr);
-            std::clog << "Added '" << ptr->get_title() <<  "' to playlist '" <<  playlist_name << "'" << std::endl;
+            //std::cout << "Added '" << ptr->get_title() <<  "' to playlist '" <<  playlist_name << "'" << std::endl;
         }
         else{
             std::cerr << "[WARNING] Invalid track index: " << i << std::endl;
         }
     }
-    std::clog << "[INFO] Playlist loaded: " << playlist_name << " ( " << playlist.get_track_count() << " tracks)" << std::endl;
+    std::cout << "[INFO] Playlist loaded: " << playlist_name << " (" << playlist.get_track_count() << " tracks)" << std::endl;
 }
 /**
  * TODO: Implement getTrackTitles method

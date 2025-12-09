@@ -12,14 +12,14 @@ MixingEngineService::MixingEngineService():
     auto_sync(false),
     bpm_tolerance(0)
 {
-    std::clog << "[MixingEngineService] Initialized with 2 empty decks." << std::endl;
+    std::cout << "[MixingEngineService] Initialized with 2 empty decks." << std::endl;
 }
 
 /**
  * Destructor
  */
 MixingEngineService::~MixingEngineService() {
-    std::clog << "[MixingEngineService] Cleaning up decks..." << std::endl;
+    std::cout << "[MixingEngineService] Cleaning up decks..." << std::endl;
     for(size_t i = 0; i < 2; i++){
         if(decks[i] != nullptr){
              delete decks[i];
@@ -32,7 +32,7 @@ MixingEngineService::~MixingEngineService() {
  * loadTrackToDeck
  */
 int MixingEngineService::loadTrackToDeck(const AudioTrack& track) {
-    std::clog << "\n=== Loading Track to Deck ===" << std::endl;
+    std::cout << "\n=== Loading Track to Deck ===" << std::endl;
 
     AudioTrack* trackUnwrp = track.clone().release();
     if(trackUnwrp == nullptr){
@@ -46,12 +46,12 @@ int MixingEngineService::loadTrackToDeck(const AudioTrack& track) {
     int target_index;
 
     if (isFirstTrack) {
-        target_index = 1;
+        target_index = 0;
     } else {
     target_index = 1 - active_deck;
     }
 
-    std::clog << "[Deck Switch] Target deck: " << target_index << std::endl;
+    std::cout << "[Deck Switch] Target deck: " << target_index << std::endl;
 
     if(decks[target_index] != nullptr){
         delete decks[target_index];
@@ -67,24 +67,25 @@ int MixingEngineService::loadTrackToDeck(const AudioTrack& track) {
             sync_bpm(wrpr);
         }
     }
+    else if (auto_sync) {
+        std::cout << "[Sync BPM] Cannot sync - one of the decks is empty." << std::endl;
+    }
 
 
     std::string newTitle = wrpr->get_title();
     decks[target_index] = wrpr.release();
-    std::clog << "[Load Complete] '" << newTitle << "' is now loaded on deck " << target_index << std::endl;
+    std::cout << "[Load Complete] '" << newTitle << "' is now loaded on deck " << target_index << std::endl;
 
-    if(!isFirstTrack && decks[active_deck] != nullptr) {
-        std::clog << "[Unload] Unloading previous deck " << active_deck
+    /*if(!isFirstTrack && decks[active_deck] != nullptr) {
+        std::cout << "[Unload] Unloading previous deck " << active_deck
          << " (" << decks[active_deck]->get_title() << ")" << std::endl;
 
         delete decks[active_deck];
         decks[active_deck] = nullptr;
-    }
-
-
+    }*/
     active_deck = target_index;
 
-    std::clog << "[Active Deck] Switched to deck " << target_index << std::endl;
+    std::cout << "[Active Deck] Switched to deck " << target_index << std::endl;
 
     return target_index;
 }

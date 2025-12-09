@@ -76,10 +76,8 @@ void Playlist::add_track(AudioTrack* track) {
         return;
     }
 
-    // Create new node - this allocates memory!
     PlaylistNode* new_node = new PlaylistNode(track);
 
-    // Add to front of list
     new_node->next = head;
     head = new_node;
     track_count++;
@@ -92,14 +90,12 @@ void Playlist::remove_track(const std::string& title) {
     PlaylistNode* current = head;
     PlaylistNode* prev = nullptr;
 
-    // Find the track to remove
     while (current && current->track->get_title() != title) {
         prev = current;
         current = current->next;
     }
 
     if (current) {
-        // Remove from linked list
         if (prev) {
             prev->next = current->next;
         } else {
