@@ -20,6 +20,8 @@ int DJControllerService::loadTrackToCache(AudioTrack& track) {
         std::cerr << "[Error]: Failed to clone track (nullptr returned)." << std::endl;
         return 0;
     }
+    loadedTrack->load();
+    loadedTrack->analyze_beatgrid();
     PointerWrapper<AudioTrack> wrpLoaded(loadedTrack);
     bool evicted = cache.put(std::move(wrpLoaded));   
     if (evicted) {

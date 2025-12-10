@@ -70,7 +70,7 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
                                                const std::vector<int>& track_indices) {
     std::cout << "[INFO] Loading playlist: "  << playlist_name << std::endl;
     playlist = Playlist(playlist_name);
-    for(auto it = track_indices.rbegin(); it != track_indices.rend(); ++it){
+    for(auto it = track_indices.begin(); it != track_indices.end(); ++it){
         int i = *it;
         if(i >= 1 && i <= static_cast<int>(library.size())){
             AudioTrack* ptr = library[i - 1]->clone().release();

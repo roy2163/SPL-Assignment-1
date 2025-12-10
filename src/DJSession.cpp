@@ -174,7 +174,6 @@ void DJSession::simulate_dj_performance() {
         for (const auto& pair : session_config.playlists){
             playlistNames.push_back(pair.first);
         }
-        std::sort(playlistNames.begin(), playlistNames.end()); 
    }
     else{
         playlist_from_user = display_playlist_menu_from_config();
@@ -189,6 +188,8 @@ void DJSession::simulate_dj_performance() {
                 std::cerr << "[ERROR] playlist: \"" << playlist_name << "\" did not load" << std::endl;
                 continue;
             }
+            
+            std::reverse(track_titles.begin(), track_titles.end());
 
             for(const auto& track_title : track_titles){
                 std::cout << "\n--- Processing: " << track_title << " ---" << std::endl;
